@@ -3,7 +3,6 @@ import jsonschema
 import requests
 from .schemas.pet_schema import PET_SCHEMA
 
-
 BASE_URL = "http://5.181.109.28:9090/api/v3"
 
 
@@ -54,9 +53,9 @@ class TestPet:
     def test_add_pet(self):
         with allure.step("Подготовка данных для создания питомца"):
             payload = {"id": 1,
-                        "name": "Buddy",
-                        "status": "available"
-                        }
+                       "name": "Buddy",
+                       "status": "available"
+                       }
 
         with allure.step("Отправка запроса на создание питомца"):
             response = requests.post(f"{BASE_URL}/pet/", json=payload)
@@ -66,9 +65,9 @@ class TestPet:
             jsonschema.validate(response_json, PET_SCHEMA)
 
         with allure.step("Проверка параметров питомца в ответе"):
-            assert response_json['id'] == payload['id'],"id питомца несовпадает с ожидаемым"
-            assert response_json['name'] == payload['name'],"id питомца несовпадает с ожидаемым"
-            assert response_json['status'] == payload['status'],"id питомца несовпадает с ожидаемым"
+            assert response_json['id'] == payload['id'], "id питомца несовпадает с ожидаемым"
+            assert response_json['name'] == payload['name'], "id питомца несовпадает с ожидаемым"
+            assert response_json['status'] == payload['status'], "id питомца несовпадает с ожидаемым"
 
     @allure.title("Добавление нового питомца с полными данными")
     def test_add_pet_with_full_data(self):
@@ -76,18 +75,18 @@ class TestPet:
             payload = {
                 "id": 10,
                 "name": "doggie",
-                "category":{
+                "category": {
                     "id": 1,
                     "name": "Dogs"
                 },
-            "photoUrls": ["string"],
-            "tags":[
-                {
-                    "id": 0,
-                    "name": "string",
-                }
-            ],
-            "status": "available"
+                "photoUrls": ["string"],
+                "tags": [
+                    {
+                        "id": 0,
+                        "name": "string",
+                    }
+                ],
+                "status": "available"
             }
         with allure.step("Отправка запроса на создания питомца"):
             response = requests.post(f"{BASE_URL}/pet/", json=payload)
@@ -100,6 +99,11 @@ class TestPet:
             jsonschema.validate(response_json, PET_SCHEMA)
 
         with allure.step("Проверка всех параметров питомца в ответе"):
-            assert response_json['id'] == payload ['id']
-            assert response_json['name'] == payload ['name']
-            assert response_json['status'] == payload ['status']
+            assert response_json['id'] == payload['id']
+            assert response_json['name'] == payload['name']
+            assert response_json['status'] == payload['status']
+            assert response_json['category']['id'] == payload['category']['id']
+            assert response_json['category']['name'] == payload['category']['name']
+            assert response_json['photoUrls'] == payload['photoUrls']
+            assert response_json['tags'][0]['id'] == payload['tags'][0]['id']
+            assert response_json['tags'][0]['name'] == payload['tags'][0]['name']
