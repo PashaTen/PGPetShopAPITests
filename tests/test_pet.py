@@ -121,16 +121,12 @@ class TestPet:
             assert response.json()["id"] == pet_id
 
     @allure.title("Обновление информации о питомце")
-    def test_update_pet_name_and_status(self, update_pet, create_pet):
+    def test_update_pet_name_and_status(self,create_pet):
         with allure.step("Проверка исходных данных питомца"):
             assert create_pet["id"] == 1
             assert create_pet["name"] == "Buddy"
             assert create_pet["status"] == "available"
 
-        with allure.step("Проверка обновленных данных"):
-            assert update_pet["id"] == 1
-            assert update_pet["name"] == "Buddy Updated"
-            assert update_pet["status"] == "sold"
         with allure.step("Подготовка данных к обновлению"):
             update_payload = {
                 "id": 1,
@@ -153,27 +149,15 @@ class TestPet:
 
 @allure.title("Удаление питомца по ID")
 def test_delete_pet_by_id(create_pet):
-    with allure.step("Отправить POST-запрос на /pet с подготовленными данными"):
-        create_payload = {
-            "id": 1,
-            "name": "Buddy",
-            "status": "available"
-        }
-        create_response = requests.post(f"{BASE_URL}/pet/", json=create_payload)
-    with allure.step("Проверить статус ответа"):
-        assert create_response.status_code == 200
 
-    with allure.step("Получение ID созданного питомца"):
+    with allure.step("Получить ID созданного питомца из ответа"):
         pet_id = create_pet["id"]
 
-    with allure.step("Отправка DELETE-запроса"):
+    with allure.step("Отправить DELETE-запрос на /pet/{pet_id}"):
         delete_response = requests.delete(f"{BASE_URL}/pet/{pet_id}")
-
-    with allure.step("Проверка статуса ответа"):
+    with allure.step("Проверить статус ответа"):
         assert delete_response.status_code == 200
-
-    with allure.step("Отправка GET-запроса"):
+    with allure.step("Отправить GET-запрос на /pet/{pet_id}"):
         response = requests.get(f"{BASE_URL}/pet/{pet_id}")
-
-    with allure.step("Проверка статуса ответа"):
+    with allure.step("Проверить статус ответа"):
         assert response.status_code == 404
