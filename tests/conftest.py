@@ -11,6 +11,7 @@ def create_pet():
         "name": "Buddy",
         "status": "available"
     }
+
     response = requests.post(f"{BASE_URL}/pet", json=payload)
     assert response.status_code == 200
     return response.json()

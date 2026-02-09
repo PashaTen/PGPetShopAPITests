@@ -155,9 +155,12 @@ def test_delete_pet_by_id(create_pet):
 
     with allure.step("Отправить DELETE-запрос на /pet/{pet_id}"):
         delete_response = requests.delete(f"{BASE_URL}/pet/{pet_id}")
+
     with allure.step("Проверить статус ответа"):
         assert delete_response.status_code == 200
+
     with allure.step("Отправить GET-запрос на /pet/{pet_id}"):
         response = requests.get(f"{BASE_URL}/pet/{pet_id}")
+
     with allure.step("Проверить статус ответа"):
         assert response.status_code == 404
