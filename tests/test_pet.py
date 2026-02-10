@@ -1,8 +1,8 @@
 import allure
 import jsonschema
+import pytest
 import requests
 from .schemas.pet_schema import PET_SCHEMA
-
 BASE_URL = "http://5.181.109.28:9090/api/v3"
 
 
@@ -177,3 +177,27 @@ def test_delete_pet_by_id(create_pet):
 
     with allure.step("Проверка статуса ответа"):
         assert response.status_code == 404
+
+
+@allure.title("Получение списка питомцев по статусу")
+@pytest.mark.parametrize(
+    "status, expected_status_code",
+    [
+        ("available", 200),
+        ("pending", 200),
+        ("sold", 200),
+        ("nonexistent", 400),
+        ("--", 400)
+    ]
+)
+def test_get_pets_by_status(status, expected_status_code):
+    with allure.step(f"Отправка запроса на получение питомцев по статусу {status}"):
+        response = requests.get(f"{BASE_URL}/pet/findByStatus", params={"status": status})
+
+    with allure.step("Проверка статуса ответа и формата данных"):
+        assert response.status_code == expected_status_code
+        if response.status_code == 200:
+            assert isinstance(response.json(), list)
+        elif response.status_code == 400:
+            assert isinstance(response.json(), dict)
+
