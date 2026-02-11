@@ -1,8 +1,8 @@
 import allure
 import jsonschema
+import pytest
 import requests
 from .schemas.pet_schema import PET_SCHEMA
-
 BASE_URL = "http://5.181.109.28:9090/api/v3"
 
 
@@ -127,6 +127,11 @@ class TestPet:
             assert create_pet["name"] == "Buddy"
             assert create_pet["status"] == "available"
 
+        with allure.step("Проверка обновленных данных"):
+            assert update_pet["id"] == 1
+            assert update_pet["name"] == "Buddy Updated"
+            assert update_pet["status"] == "sold"
+
         with allure.step("Подготовка данных к обновлению"):
             update_payload = {
                 "id": 1,
@@ -141,50 +146,58 @@ class TestPet:
             assert response.status_code == 200
 
         with allure.step("Проверка ответа с обновленными данными питомца"):
-            update_pet = response.json()
-            assert update_pet["id"] == 1
-            assert update_pet["name"] == "Buddy Updated"
-            assert update_pet["status"] == "sold"
+            updated_pet = response.json()
+            assert updated_pet["id"] == 1
+            assert updated_pet["name"] == "Buddy Updated"
+            assert updated_pet["status"] == "sold"
 
+    @allure.title("Удаление питомца по ID")
+    def test_delete_pet_by_id(self, create_pet):
+        with allure.step("Отправить POST-запрос на /pet с подготовленными данными"):
+            create_payload = {
+                "id": 1,
+                "name": "Buddy",
+                "status": "available"
+            }
+            create_response = requests.post(f"{BASE_URL}/pet/", json=create_payload)
 
-@allure.title("Удаление питомца по ID")
-def test_delete_pet_by_id(create_pet):
+        with allure.step("Проверить статус ответа"):
+            assert create_response.status_code == 200
 
-    with allure.step("Получить ID созданного питомца из ответа"):
-        pet_id = create_pet["id"]
+        with allure.step("Получение ID созданного питомца"):
+            pet_id = create_pet["id"]
 
-    with allure.step("Отправить DELETE-запрос на /pet/{pet_id}"):
-        delete_response = requests.delete(f"{BASE_URL}/pet/{pet_id}")
+        with allure.step("Отправка DELETE-запроса"):
+            delete_response = requests.delete(f"{BASE_URL}/pet/{pet_id}")
 
-    with allure.step("Проверить статус ответа"):
-        assert delete_response.status_code == 200
+        with allure.step("Проверка статуса ответа"):
+            assert delete_response.status_code == 200
 
-    with allure.step("Отправить GET-запрос на /pet/{pet_id}"):
-        response = requests.get(f"{BASE_URL}/pet/{pet_id}")
+        with allure.step("Отправка GET-запроса для проверки удаления"):
+            response = requests.get(f"{BASE_URL}/pet/{pet_id}")
 
-    with allure.step("Проверить статус ответа"):
+    with allure.step("Проверка статуса ответа"):
         assert response.status_code == 404
 
+    @allure.title("Получение списка питомцев по статусу")
+    @pytest.mark.parametrize(
+        "status, expected_status_code",
+        [
+            ("available", 200),
+            ("pending", 200),
+            ("sold", 200),
+            ("nonexistent", 400),
+            ("__", 400)
+        ]
+    )
+    def test_get_pets_by_status(self, status, expected_status_code):
+        with allure.step(f"Отправка запроса на получение питомцев по статусу {status}"):
+            response = requests.get(f"{BASE_URL}/pet/findByStatus", params={"status": status})
 
-@allure.title("Получение списка питомцев по статусу")
-@pytest.mark.parametrize(
-    "status, expected_status_code",
-    [
-        ("available", 200),
-        ("pending", 200),
-        ("sold", 200),
-        ("nonexistent", 400),
-        ("--", 400)
-    ]
-)
-def test_get_pets_by_status(status, expected_status_code):
-    with allure.step(f"Отправка запроса на получение питомцев по статусу {status}"):
-        response = requests.get(f"{BASE_URL}/pet/findByStatus", params={"status": status})
-
-    with allure.step("Проверка статуса ответа и формата данных"):
-        assert response.status_code == expected_status_code
-        if response.status_code == 200:
-            assert isinstance(response.json(), list)
-        elif response.status_code == 400:
-            assert isinstance(response.json(), dict)
+        with allure.step("Проверка статуса ответа и формата данных"):
+            assert response.status_code == expected_status_code
+            if response.status_code == 200:
+                assert isinstance(response.json(), list)
+            elif response.status_code == 400:
+                assert isinstance(response.json(), dict)
 
