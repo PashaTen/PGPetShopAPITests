@@ -3,6 +3,7 @@ import jsonschema
 import pytest
 import requests
 from .schemas.pet_schema import PET_SCHEMA
+
 BASE_URL = "http://5.181.109.28:9090/api/v3"
 
 
@@ -127,11 +128,6 @@ class TestPet:
             assert create_pet["name"] == "Buddy"
             assert create_pet["status"] == "available"
 
-        with allure.step("Проверка обновленных данных"):
-            assert update_pet["id"] == 1
-            assert update_pet["name"] == "Buddy Updated"
-            assert update_pet["status"] == "sold"
-
         with allure.step("Подготовка данных к обновлению"):
             update_payload = {
                 "id": 1,
@@ -176,8 +172,8 @@ class TestPet:
         with allure.step("Отправка GET-запроса для проверки удаления"):
             response = requests.get(f"{BASE_URL}/pet/{pet_id}")
 
-    with allure.step("Проверка статуса ответа"):
-        assert response.status_code == 404
+        with allure.step("Проверка, что питомец не найден"):
+            assert response.status_code == 404
 
     @allure.title("Получение списка питомцев по статусу")
     @pytest.mark.parametrize(
@@ -200,4 +196,3 @@ class TestPet:
                 assert isinstance(response.json(), list)
             elif response.status_code == 400:
                 assert isinstance(response.json(), dict)
-
