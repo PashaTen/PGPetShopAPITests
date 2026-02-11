@@ -122,7 +122,7 @@ class TestPet:
             assert response.json()["id"] == pet_id
 
     @allure.title("Обновление информации о питомце")
-    def test_update_pet_name_and_status(self,create_pet):
+    def test_update_pet_name_and_status(self, create_pet):
         with allure.step("Проверка исходных данных питомца"):
             assert create_pet["id"] == 1
             assert create_pet["name"] == "Buddy"
