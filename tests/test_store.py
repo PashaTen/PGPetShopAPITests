@@ -2,6 +2,8 @@ import allure
 import jsonschema
 import pytest
 import requests
+
+from .schemas.inventory_schema import INVENTORY_SCHEMA
 from .schemas.order_schema import ORDER_SCHEMA
 
 BASE_URL = "http://5.181.109.28:9090/api/v3"
@@ -58,6 +60,8 @@ class TestStore:
 
         with allure.step("Отправка DELETE-запроса на /store/order/{orderId}"):
             delete_response = requests.delete(f"{BASE_URL}/store/order/{order_id}")
+        with allure.step("Проверка статуса на DELETE"):
+            assert delete_response.status_code == 200
 
         with allure.step("Отправка GET-запроса на /store/order/{orderId}"):
             get_response = requests.get(f"{BASE_URL}/store/order/{order_id}")
@@ -84,3 +88,6 @@ class TestStore:
         with allure.step("Проверка содержимого ответа в формате словаря"):
             response_json = response.json()
             assert isinstance(response_json, dict)
+
+        with allure.step("Проверка JSON-схемы"):
+            jsonschema.validate(response_json, INVENTORY_SCHEMA)
